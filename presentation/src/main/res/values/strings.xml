@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">WunderTest</string>
+    <string name="fabric_api_key">YOUR_API_KEY</string>
+    <string name="title_activity_car_maps">Map</string>
+    <string name="maps">Maps</string>
+    <string name="grant">GRANT</string>
+</resources>
