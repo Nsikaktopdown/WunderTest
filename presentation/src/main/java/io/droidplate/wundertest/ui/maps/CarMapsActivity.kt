@@ -30,13 +30,16 @@ import kotlinx.android.synthetic.main.activity_car_maps.*
 import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
 
-class CarMapsActivity : BaseActivity(), OnMapReadyCallback {
+class CarMapsActivity : BaseActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     private lateinit var mMap: GoogleMap
 
     var locationDisposable: Disposable? = null
+    var userlocation: Location? = null
+
 
     private var carlist = mutableListOf<CarItem>()
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,8 +57,13 @@ class CarMapsActivity : BaseActivity(), OnMapReadyCallback {
 
         checkLocationPermission()
 
-        if(isLocationGranted()!!){
+        if (isLocationGranted()!!) {
             retrieveAndDisplayLocation()
+        }
+
+
+        my_location.setOnClickListener {
+            updateMapCameraToLatLng(userlocation!!.toLatLng())
         }
 
     }
@@ -81,6 +89,9 @@ class CarMapsActivity : BaseActivity(), OnMapReadyCallback {
         }
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(carlist[10].lat, carlist[10].long)))
+
+
+        mMap.setOnMarkerClickListener(this@CarMapsActivity)
     }
 
 
@@ -96,7 +107,7 @@ class CarMapsActivity : BaseActivity(), OnMapReadyCallback {
     private fun updateUserPosition(location: Location?) {
 
         if (location == null) return
-        //this.userLocation = location
+        this.userlocation = location
         my_location.show()
 
         // mMap.clear() // remove all markers
@@ -113,7 +124,7 @@ class CarMapsActivity : BaseActivity(), OnMapReadyCallback {
         userMarker.showInfoWindow() // Show the marker window
 
 
-        updateMapCameraToLatLng(location.toLatLng())
+        //updateMapCameraToLatLng(location.toLatLng())
     }
 
     private fun updateMapCameraToLatLng(latLng: LatLng?) {
@@ -133,13 +144,22 @@ class CarMapsActivity : BaseActivity(), OnMapReadyCallback {
                 .subscribe({ updateUserPosition(it) }, { it.printStackTrace() })
     }
 
+    override fun onMarkerClick(marker: Marker?): Boolean {
+
+        mMap.clear()
+
+        createMarker(mMap, marker!!.position.latitude , marker!!.position.longitude, marker!!.title, R.drawable.car)
+
+        return true
+    }
 
     override fun onStop() {
         super.onStop()
-        if(locationDisposable != null){
+        if (locationDisposable != null) {
             locationDisposable!!.dispose()
         }
     }
+
     @SuppressLint("RestrictedApi")
     val userLocation: Observable<Location> = Observable.create { e ->
 
